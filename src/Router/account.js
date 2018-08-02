@@ -22,12 +22,13 @@ route.get('/checkAccessToken', (req, res) => {
 
 route.post('/login', (req, res) => {
   const { id, password } = req.body;
-
+  
   Mongo.getAccount().login(id, password)
   .then(result => {
     const accessToken = jwtCreate({  userId: id });
     const resultWithPayload = 
       Object.assign({}, result, { payload: { accessToken } });
+  
     res.json(resultWithPayload);
   });
 });

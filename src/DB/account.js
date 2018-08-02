@@ -60,6 +60,7 @@ export default class Account {
     return Result(true, '사용자 정보 입력 완료했어요.', Errors.NONE);
   }
 
+  // 로그인
   async login(id, password) {
     const encryptedPassword = crypto.createHmac('sha1', Sys.SECRET)
     .update(password)

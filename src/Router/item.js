@@ -75,7 +75,7 @@ route.post('/deleteItems', (req, res) => {
   const items = req.body['itemHisIds'];
 
   if (!jwtVerify(accessToken)) {
-    res.json(Result(false, Errors.MSG_ACCESS_TOKEN_ERROR, 
+    res.json(Result(false, Errors.MSG_ACCESS_TOKEN_ERROR,
       Errors.ACCESS_TOKEN_ERROR));
     return;
   }
@@ -100,7 +100,7 @@ route.post('/detail', (req, res) => {
 
     if (!jwtVerify(accessToken)) {
       res.json(
-        Result(false, Errors.MSG_ACCESS_TOKEN_ERROR, 
+        Result(false, Errors.MSG_ACCESS_TOKEN_ERROR,
           Errors.ACCESS_TOKEN_ERROR));
       return 0;
     }
@@ -119,7 +119,7 @@ route.post('/newTag', (req, res) => {
   const accessToken = req.get('c-access-token');
   const { itemHisId, tag } = req.body;
 
-  if (accessToken === undefined || accessToken === 'undefined' || 
+  if (accessToken === undefined || accessToken === 'undefined' ||
       !jwtVerify(accessToken)) {
     res.json(
       Result(false, `엑세스토큰에 문제가 발생했어요.`, Errors.ACCESS_TOKEN_ERROR));
@@ -146,6 +146,42 @@ route.post('/deleteTag', (req, res) => {
 
   const userId = decode(accessToken)['userId'];
   Mongo.getItem().deleteTag(userId, itemHisId, tag)
+  .then(result => {
+    res.json(result);
+  });
+});
+
+route.post('/newCheckBox', (req, res) => {
+  const accessToken = req.get('c-access-token');
+  const { itemHisId, title } = req.body;
+
+  if (!jwtVerify(accessToken)) {
+    res.json(Result(false, Errors.MSG_ACCESS_TOKEN_ERROR,
+      Errors.ACCESS_TOKEN_ERROR));
+    return;
+  }
+
+  const userId = decode(accessToken)['userId'];
+
+  Mongo.getItem().insertNewCheckBox(userId, itemHisId, title)
+  .then(result => {
+    res.json(result);
+  });
+});
+
+route.post('/changeCheckState', (req, res) => {
+  const accessToken = req.get('c-access-token');
+  const { itemHisId, checkBoxId } = req.body;
+
+  if (!jwtVerify(accessToken)) {
+    res.json(Result(false, Errors.MSG_ACCESS_TOKEN_ERROR,
+      Erros.ACCESS_TOKEN_ERROR));
+    return;
+  }
+
+  const userId = decode(accessToken)['userId'];
+
+  Mongo.getItem().changeCheckState(userId, itemHisId, checkBoxId)
   .then(result => {
     res.json(result);
   });

@@ -14,6 +14,12 @@ export default class Item {
   }
 
   setSchema() {
+
+    const checkBoxSchema = new Schema({
+      title: String,
+      checked: { type: Boolean, default: false }
+    });
+
     const schema = new Schema(
       {
         writerId: { type: String, required: true },
@@ -26,12 +32,7 @@ export default class Item {
         private: { type: Boolean, default: true },
         shareUserList: [String],
         deleted: { type: Boolean, default: false },
-        checkBoxList: [
-          {
-            title: { type: String, default: '미입력' },
-            checked: { type: Boolean, default: false }
-          }
-        ],
+        checkBoxList: [checkBoxSchema],
         tagList: [String],
 
         createdTime: { type: Date, default: Date.now },
@@ -250,5 +251,70 @@ export default class Item {
     }
 
     return Result(true, Errors.MSG_DB_WORK_OK, Errors.NONE, '');
+  }
+
+  async insertNewCheckBox(userId, itemHisId, title) {
+    const checkBox = { title: title, checked: false };
+    const getCondition = { writerId: userId, historyId: itemHisId, deleted: false };
+    const setCondition = { $addToSet: { checkBoxList: checkBox } };
+
+    const item = await this.model
+    .findOneAndUpdate(getCondition, setCondition, { new: true })
+    .catch(err => { console.error(err); return null; });
+
+    if (item === null) {
+      return Result(false, Errors.MSG_DB_WORK_ERROR, Errors.DB_ERROR);
+    }
+
+    if (item.nModified < 1) {
+      return Result(false, Errors.MSG_DB_WORK_ERROR, Errors.DB_ERROR);
+    }
+    
+    if (item.n === 0 || item.ok === 0) {
+      return Result(false, Errors.MSG_DB_EMPTY_ERROR, Errors.EMPTY);
+    }
+
+    console.log(item);
+    return Result(true, Errors.MSG_DB_WORK_OK, Errors.NONE, item);
+  }
+
+  // 체크박스 하나의 체크 상태를 변경해요.
+  // 변경 성공시 payload는 없어요.
+  async changeCheckState(userId, itemHisId, checkBoxId) {
+    const getCondition = { writerId: userId, historyId: itemHisId, deleted: false };
+    const item = await this.model.findOne(getCondition)
+    .catch(err => { console.error(err); return -1; });
+
+    if (item === -1) {
+      return Result(false, Errors.MSG_DB_WORK_ERROR, Errors.DB_ERROR);
+    }
+
+    if (item === null) {
+      return Result(false, Errors.MSG_DB_EMPTY_ERROR, Errors.EMPTY);
+    }
+
+    // 돌려받은 도큐먼트를 toJSON()을 안하면, 오브젝트로 받아져서 그런지, 필요하지 않은,
+    // 숨겨진 데이터들도 같이 받아져온다. 사용하기 편하게 JSON으로 변환.
+    // toJSON은 Document의 기본 제공 함수.
+    const checkBox = item.toJSON().checkBoxList.find(value => {
+      return value._id == checkBoxId ? true : false;
+    });
+    checkBox.checked = !checkBox.checked;
+
+
+    const setCondition = { writerId: userId, historyId: itemHisId, deleted: false,
+      checkBoxList: { $elemMatch: { _id: checkBoxId } } };
+
+    // $는 검색 조건의 커서이며, 
+    // $elemMatch를 사용한 이유는 배열을 직접 수정하기 위해 커서가 필요했어요.
+    const result = await this.model
+    .findOneAndUpdate(setCondition, { $set: { 'checkBoxList.$': checkBox } })
+    .catch(err => { console.error(err); return -1; });
+
+    if (result === -1 || result.nModified === 0 || result.n === 0 || result.ok === 0) {
+      return Result(false, Errors.MSG_DB_WORK_ERROR, Errors.DB_ERROR);
+    }
+
+    return Result(true, Errors.MSG_DB_WORK_OK, Errors.NONE);
   }
 }

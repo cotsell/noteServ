@@ -15,4 +15,5 @@ export const PRIVATE = 15;
 
 export const MSG_ACCESS_TOKEN_ERROR = '엑세스토큰에 문제가 있거나 만료되었어요.';
 export const MSG_DB_WORK_ERROR = 'DB 처리 중에 문제가 발생했어요.';
+export const MSG_DB_EMPTY_ERROR = 'DB에 해당 자료가 존재하지 않아요.';
 export const MSG_DB_WORK_OK = 'DB 처리 성공.';
