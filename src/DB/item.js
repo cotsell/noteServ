@@ -43,6 +43,7 @@ export default class Item {
     return schema;
   }
 
+  // 해당 서브젝트에 포함 된 아이템들의 간략한 정보들을 돌려줘요.
   async getTitleList(userId, subjHisId) {
 
     if (userId === undefined) {
@@ -253,6 +254,7 @@ export default class Item {
     return Result(true, Errors.MSG_DB_WORK_OK, Errors.NONE, '');
   }
 
+  // 새로운 체크박스를 생성해요.
   async insertNewCheckBox(userId, itemHisId, title) {
     const checkBox = { title: title, checked: false };
     const getCondition = { writerId: userId, historyId: itemHisId, deleted: false };

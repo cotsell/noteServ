@@ -112,7 +112,7 @@ export default class Subject {
     .catch(err => { console.error(err); return null; });
 
     if (count === null ) {
-      return Result(false, 'DB 에러.');
+      return Result(false, Errors.MSG_DB_WORK_ERROR, Errors.DB_ERROR);
     }
 
     count += 1;
