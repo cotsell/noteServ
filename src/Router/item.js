@@ -186,3 +186,21 @@ route.post('/changeCheckState', (req, res) => {
     res.json(result);
   });
 });
+
+route.post('/deleteCheckBox', (req, res) => {
+  const accessToken = req.get('c-access-token');
+  const { itemHisId, checkBoxId } = req.body;
+  console.log(checkBoxId);
+  if (!jwtVerify(accessToken)) {
+    res.json(Result(false, Errors.MSG_ACCESS_TOKEN_ERROR,
+      Erros.ACCESS_TOKEN_ERROR));
+    return;
+  }
+
+  const userId = decode(accessToken)['userId'];
+
+  Mongo.getItem().deleteCheckBox(userId, itemHisId, checkBoxId)
+  .then(result => {
+    res.json(result);
+  });
+});

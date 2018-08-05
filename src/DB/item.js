@@ -269,13 +269,15 @@ export default class Item {
     if (item.nModified < 1) {
       return Result(false, Errors.MSG_DB_WORK_ERROR, Errors.DB_ERROR);
     }
-    
+
     if (item.n === 0 || item.ok === 0) {
       return Result(false, Errors.MSG_DB_EMPTY_ERROR, Errors.EMPTY);
     }
 
-    console.log(item);
-    return Result(true, Errors.MSG_DB_WORK_OK, Errors.NONE, item);
+    const index = item.checkBoxList.length;
+    const result = item.checkBoxList[index - 1];
+
+    return Result(true, Errors.MSG_DB_WORK_OK, Errors.NONE, result);
   }
 
   // 체크박스 하나의 체크 상태를 변경해요.
@@ -305,7 +307,7 @@ export default class Item {
     const setCondition = { writerId: userId, historyId: itemHisId, deleted: false,
       checkBoxList: { $elemMatch: { _id: checkBoxId } } };
 
-    // $는 검색 조건의 커서이며, 
+    // $는 검색 조건의 커서이며,
     // $elemMatch를 사용한 이유는 배열을 직접 수정하기 위해 커서가 필요했어요.
     const result = await this.model
     .findOneAndUpdate(setCondition, { $set: { 'checkBoxList.$': checkBox } })
@@ -314,6 +316,26 @@ export default class Item {
     if (result === -1 || result.nModified === 0 || result.n === 0 || result.ok === 0) {
       return Result(false, Errors.MSG_DB_WORK_ERROR, Errors.DB_ERROR);
     }
+
+    return Result(true, Errors.MSG_DB_WORK_OK, Errors.NONE);
+  }
+
+  // 체크박스를 한개 삭제해요. 삭제에 성공해도 Payload는 리턴하지 않아요.
+  async deleteCheckBox(userId, itemHisId, checkBoxId) {
+    const condition = { writerId: userId, historyId: itemHisId, deleted: false };
+    // 아래 조건식으로 해야 할 줄 알았는데.. setter로 처리가 됐다. 왜지..
+    // 최상위 명령어가 $pull이라서 그런가..
+    // const ssetter = { $pull: { checkBoxList: { $elemMatch: { _id: checkBoxId } } } };
+    const setter = { $pull: { checkBoxList: { _id: checkBoxId } } } ;
+    const result = await this.model
+    .update(condition, setter)
+    .catch(err => { console.error(err); return -1; });
+
+    if (result === -1 || result.nModified === 0 || result.n === 0 || result.ok === 0) {
+      return Result(false, Errors.MSG_DB_WORK_ERROR, Errors.DB_ERROR);
+    }
+
+    console.log(result);
 
     return Result(true, Errors.MSG_DB_WORK_OK, Errors.NONE);
   }
