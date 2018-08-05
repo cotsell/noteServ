@@ -64,3 +64,24 @@ route.post('/sign', (req, res) => {
     } 
   });
 });
+
+route.post('/changePassword', (req, res) => {
+  const accessToken = req.get('c-access-token');
+  const { oldPass, newPass } = req.body;
+
+  console.log(accessToken);
+  console.log(oldPass);
+  console.log(newPass);
+
+  if (!jwtVerify(accessToken)) {
+    res.json(Result(false, Errors.MSG_ACCESS_TOKEN_ERROR, Errors.ACCESS_TOKEN_ERROR));
+    return;
+  }
+
+  const userId = decode(accessToken)['userId'];
+
+  Mongo.getAccount().changePassword(userId, oldPass, newPass)
+  .then(result => {
+    res.json(result);
+  });
+});

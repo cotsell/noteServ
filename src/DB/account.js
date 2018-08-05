@@ -77,5 +77,32 @@ export default class Account {
     return Result(true, '로그인 성공.', 0);
   }
 
+  // 비밀번호 변경.
+  async changePassword(userId, oldPass, newPass) {
+    const enOldPass = crypto.createHmac('sha1', Sys.SECRET)
+    .update(oldPass)
+    .digest('base64');
+    const enNewPass = crypto.createHmac('sha1', Sys.SECRET)
+    .update(newPass)
+    .digest('base64');
 
+    const condition = { id: userId, password: enOldPass };
+    
+    const result = await this.model.findOneAndUpdate(
+      condition, 
+      { password: enNewPass, updatedTime: Date.now() })
+    .catch(err => { console.error(err); return -1; });
+
+    // DB 처리 중 문제 발생.
+    if (result === -1) {
+      return Result(false, Errors.MSG_DB_WORK_ERROR, Errors.DB_ERROR);
+    }  
+
+    // 검색 조건 결과가 없는 경우.
+    if (result === null) {
+      return Result(false, Errors.MSG_DB_EMPTY_ERROR, Errors.EMPTY);
+    }
+
+    return Result(true, Errors.MSG_DB_WORK_OK, Errors.NONE);
+  }
 }
